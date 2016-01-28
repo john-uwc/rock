@@ -5,27 +5,32 @@ import java.util.Stack;
 
 /**
  * @author steven
- * @version 1.1
+ * @version 1.2
  * <h1>due to log, the logger support a smart log mechanism that is based on workflow</h1>
  * <br>
  * <h2>example:</h2>
  * Logger.appendFilteEntry(packagename, tag);
- * Logger.toggle(workflow).eat(level, content);
+ * Logger.toggle(workflow).eat(level, anchor);
  * Logger.reset(workflow);
  * Logger.removeFilteEntry(packagename);
  */
 public class Logger {
 
-    public enum Level{
-        fatal, error, warn, verbose, debug, info
-    }
-
-    public interface ServiceMediator {
+    public interface ServiceMediator{
+        enum Level{
+            fatal, error, warn, verbose, debug, info
+        }
         public void invoke(Level level, String tag, String body);
     }
 
     public interface Anchor {
-        public void packTo(Level level, Stack<String> workflows, ServiceMediator mediator);
+        public void packTo(ServiceMediator.Level level, Stack<String> workflows, ServiceMediator mediator);
+    }
+
+    public Logger eat(ServiceMediator.Level level, Anchor anchor){
+        if(null != anchor)
+            anchor.packTo(level, mWorkflow.get(), sServiceMediator);
+        return Logger.this;
     }
 
     public static void setServiceMediator(ServiceMediator mediator){
@@ -46,12 +51,10 @@ public class Logger {
         Filter.remove(key);
     }
 
+
     public static final String unclassified = "unclassified";
 
-    private static Logger sInstance = null;
-
-    private Logger(){
-    }
+    private ThreadLocal<Stack<String>> mWorkflow = new ThreadLocal<Stack<String>>();
 
     private static ServiceMediator sServiceMediator = new ServiceMediator() {
         @Override
@@ -60,55 +63,49 @@ public class Logger {
         }
     };
 
-    private ThreadLocal<Stack<String>> mWorkflow = new ThreadLocal<Stack<String>>();
+    private static Logger sInstance = null;
 
-    private static Logger toggle(String workflow, boolean inorout){
+    private Logger(){
+    }
+
+    private static Logger setup(String workflow, boolean inout){
         synchronized (Logger.class) {
             if (null == sInstance)
                 sInstance = new Logger();
-            sInstance.onWorkflow(workflow, inorout);
+            sInstance.onWorkflow(workflow, inout);
         }
         return sInstance;
     }
 
-    public static Logger toggle(){
-        return toggle(null, true);
-    }
-
-    public static Logger reset(){
-        return toggle(null, false);
-    }
-
-    public static Logger reset(String workflow){
-        return toggle(workflow, false);
-    }
-
-    public static Logger toggle(String workflow){
-        return toggle(workflow, true);
-    }
-
-
-    public Logger eat(Level level, Anchor anchor){
-        if(null != anchor)
-            anchor.packTo(level, mWorkflow.get(), sServiceMediator);
-        return Logger.this;
-    }
-
-    private void onWorkflow(String workflow, boolean inorout){
+    private void onWorkflow(String workflow, boolean inout){
         if (null == mWorkflow.get()) {
             mWorkflow.set(new Stack<String>());
         }
-        if (null == workflow){
-            workflow = unclassified;
-        }
-        if (unclassified.equals(workflow) && !inorout) {
-            mWorkflow.get().clear();
-        }else if (!unclassified.equals(workflow) && !inorout) {
+        if (null != workflow && !inout) {
             mWorkflow.get().remove(workflow);
-        }else if (!unclassified.equals(workflow) && inorout) {
+        }else if (null != workflow && inout){
             mWorkflow.get().push(workflow);
+        }else if (null == workflow && !inout) {
+            mWorkflow.get().clear();
         }
     }
+
+    public static Logger toggle(String workflow){
+        return setup(workflow, true);
+    }
+
+    public static Logger toggle(){
+        return toggle(null);
+    }
+
+    public static Logger reset(String workflow){
+        return setup(workflow, false);
+    }
+
+    public static Logger reset(){
+        return reset(null);
+    }
+
 
     /**
      * @author steven
@@ -180,8 +177,8 @@ public class Logger {
             this(String.format(format, args));
         }
 
-        public void packTo(Level level, Stack<String> workflows, ServiceMediator mediator){
-            mediator.invoke(level, SimpleAnchor.class.getSimpleName(), mBody);
+        public void packTo(ServiceMediator.Level level, Stack<String> workflows, ServiceMediator mediator){
+            mediator.invoke(level, SimpleAnchor.class.getSimpleName(), Logger.unclassified + " " + mBody);
             if (workflows.empty()){
                 return;
             }
