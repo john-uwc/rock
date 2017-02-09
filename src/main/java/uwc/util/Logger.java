@@ -16,18 +16,19 @@ import java.util.Stack;
  */
 public class Logger {
 
+    public enum Level {
+        fatal, error, warn, verbose, debug, info
+    }
+
     public interface ServiceMediator{
-        enum Level{
-            fatal, error, warn, verbose, debug, info
-        }
         public void invoke(Level level, String tag, String body);
     }
 
     public interface Anchor {
-        public void packTo(ServiceMediator.Level level, Stack<String> workflows, ServiceMediator mediator);
+        public void packTo(Level level, Stack<String> workflows, ServiceMediator mediator);
     }
 
-    public Logger eat(ServiceMediator.Level level, Anchor anchor){
+    public Logger eat(Level level, Anchor anchor){
         if(null != anchor)
             anchor.packTo(level, mWorkflow.get(), sServiceMediator);
         return Logger.this;
@@ -177,7 +178,7 @@ public class Logger {
             this(String.format(format, args));
         }
 
-        public void packTo(ServiceMediator.Level level, Stack<String> workflows, ServiceMediator mediator){
+        public void packTo(Level level, Stack<String> workflows, ServiceMediator mediator){
             mediator.invoke(level, SimpleAnchor.class.getSimpleName(), Logger.unclassified + " " + mBody);
             if (workflows.empty()){
                 return;
