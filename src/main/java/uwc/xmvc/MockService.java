@@ -40,7 +40,7 @@ class MockService {
             SAXParserFactory.newInstance()
                     .newSAXParser().parse(mockRaw, new MockHandler());
         } catch (Exception e) {
-            Logger.toggle().eat(Logger.Level.debug, new StackTraceAnchor(e.getMessage()));
+            new StackTraceAnchor(e.getMessage()).stick(Logger.local(), Logger.Level.debug);
         }
     }
 

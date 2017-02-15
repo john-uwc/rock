@@ -9,7 +9,7 @@ import uwc.util.Taskpool;
 import uwc.util.trace.StackTraceAnchor;
 
 /**
- * Created by wumingming on 2/5/16.
+ * Created by steven on 2/5/16.
  */
 final class Transaction {
 
@@ -65,7 +65,7 @@ final class Transaction {
                         Dispatcher.class.wait(sMaySleep ? Long.MAX_VALUE : 2);
                     }
                 } catch (Exception e) {
-                    Logger.toggle().eat(Logger.Level.error, new StackTraceAnchor(e.getMessage()));
+                    new StackTraceAnchor(e.getMessage()).stick(Logger.local(), Logger.Level.error);
                 }
             } while (true);
         }
@@ -123,8 +123,7 @@ final class Transaction {
                         (mToken.mediator =
                                 (mModel = model).getServiceMediator()).querySvcTerm(mToken.service);
             }catch (Exception e) {
-                Logger.toggle().eat(Logger.Level.error,
-                        new StackTraceAnchor("service task create failed with %s {%s:<%s}", e.getMessage(), myToken().service, myToken().params));
+                new StackTraceAnchor("service task create failed with %s {%s:<%s}", e.getMessage(), myToken().service, myToken().params).stick(Logger.local(), Logger.Level.error);
             }
         }
 
@@ -196,8 +195,7 @@ final class Transaction {
 
 
     public static void response(XModel<? extends XModel> model, String service, HashMap<String, ?> params, XResponse<?> response) {
-        Logger.toggle().eat(Logger.Level.info,
-                new StackTraceAnchor("service %s [%s:<%s]", response.getDescription(), service, params));
+        new StackTraceAnchor("service %s [%s:<%s]", response.getDescription(), service, params).stick(Logger.local(),Logger.Level.info);
         model.padding(service, response);
     }
 

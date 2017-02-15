@@ -20,7 +20,7 @@ import java.util.Stack;
 public final class XController {
 
     static {
-        Logger.appendFilteEntry("uwc.xmvc", "xmvc");
+        StackTraceAnchor.appendFilteEntry("uwc.xmvc", "xmvc");
     }
 
     private static XController sInstance = null;
@@ -89,11 +89,9 @@ public final class XController {
         if (null == model) {
             try{
                 sModelPool.put(unit, model = smartType(unit).newInstance());
-                Logger.toggle().eat(Logger.Level.info,
-                        new StackTraceAnchor("xmodel:%s/unit:%s", model, unit));
+                new StackTraceAnchor("xmodel:%s/unit:%s", model, unit).stick(Logger.local(), Logger.Level.info);
             } catch (Exception e){
-                Logger.toggle().eat(Logger.Level.error,
-                        new StackTraceAnchor("xmodel for " + unit + " fail: " + e.getMessage()));
+                new StackTraceAnchor("xmodel for " + unit + " fail: " + e.getMessage()).stick(Logger.local(), Logger.Level.error);
             }
         }
         return model;
