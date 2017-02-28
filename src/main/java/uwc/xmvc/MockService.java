@@ -1,7 +1,7 @@
 package uwc.xmvc;
 
-import uwc.util.trace.StackTraceAnchor;
-import uwc.util.Logger;
+import uwc.util.funnel.AnchorFunnel;
+import uwc.util.funnel.StackTraceAnchor;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -40,7 +40,9 @@ class MockService {
             SAXParserFactory.newInstance()
                     .newSAXParser().parse(mockRaw, new MockHandler());
         } catch (Exception e) {
-            new StackTraceAnchor(e.getMessage()).stick(Logger.local(), Logger.Level.debug);
+            new StackTraceAnchor(e.getMessage())
+                    .setLevel(StackTraceAnchor.Level.debug)
+                    .stick();
         }
     }
 

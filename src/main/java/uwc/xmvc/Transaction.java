@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import uwc.util.Logger;
+import uwc.util.funnel.AnchorFunnel;
 import uwc.util.Taskpool;
-import uwc.util.trace.StackTraceAnchor;
+import uwc.util.funnel.StackTraceAnchor;
 
 /**
  * Created by steven on 2/5/16.
@@ -65,7 +65,9 @@ final class Transaction {
                         Dispatcher.class.wait(sMaySleep ? Long.MAX_VALUE : 2);
                     }
                 } catch (Exception e) {
-                    new StackTraceAnchor(e.getMessage()).stick(Logger.local(), Logger.Level.error);
+                    new StackTraceAnchor(e.getMessage())
+                            .setLevel(StackTraceAnchor.Level.error)
+                            .stick();
                 }
             } while (true);
         }
@@ -123,7 +125,9 @@ final class Transaction {
                         (mToken.mediator =
                                 (mModel = model).getServiceMediator()).querySvcTerm(mToken.service);
             }catch (Exception e) {
-                new StackTraceAnchor("service task create failed with %s {%s:<%s}", e.getMessage(), myToken().service, myToken().params).stick(Logger.local(), Logger.Level.error);
+                new StackTraceAnchor("service task create failed with %s {%s:<%s}", e.getMessage(), myToken().service, myToken().params)
+                        .setLevel(StackTraceAnchor.Level.error)
+                        .stick();
             }
         }
 
@@ -195,7 +199,9 @@ final class Transaction {
 
 
     public static void response(XModel<? extends XModel> model, String service, HashMap<String, ?> params, XResponse<?> response) {
-        new StackTraceAnchor("service %s [%s:<%s]", response.getDescription(), service, params).stick(Logger.local(),Logger.Level.info);
+        new StackTraceAnchor("service %s [%s:<%s]", response.getDescription(), service, params)
+                .setLevel(StackTraceAnchor.Level.info)
+                .stick();
         model.padding(service, response);
     }
 

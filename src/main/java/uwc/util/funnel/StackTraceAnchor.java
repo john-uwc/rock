@@ -1,46 +1,85 @@
-package uwc.util.trace;
-
-import uwc.util.Logger;
+package uwc.util.funnel;
 
 import java.util.HashMap;
+import java.util.Stack;
 
 /**
  * Created by steven on 1/27/16.
  */
-public class StackTraceAnchor extends Throwable implements Logger.Anchor {
-    protected StackTraceElement mSte = getStackTrace()[0];
+public class StackTraceAnchor extends Throwable implements Anchor {
+    private static ThreadLocal<Stack<String>> sWorkflow = new ThreadLocal<Stack<String>>();
 
-    private static Filter sTagFilter = new Filter();
+    protected static final String unknown = "unclassified";
+    private static Filter sLabelFilter = new Filter();
+    private String mLabel = unknown;
+    public enum Level {
+        fatal, error, warn, verbose, debug, info
+    }
+    private Level mLevel = Level.verbose;
 
     public static void appendFilteEntry(String key, String value) {
-        sTagFilter.put(key, value);
+        sLabelFilter.put(key, value);
     }
 
     public static void removeFilteEntry(String key) {
-        sTagFilter.remove(key);
+        sLabelFilter.remove(key);
     }
 
-    public StackTraceAnchor(String body) {
-        super(body);
+    public StackTraceAnchor(String value) {
+        super(value);
     }
 
     public StackTraceAnchor(String format, Object... args) {
         this(String.format(format, args));
     }
 
-    public String getBody() {
-        return String.format("<%s@%s>[%s:%s] %s"
-                , mSte.getMethodName(), mSte.getClassName(), mSte.getFileName(), mSte.getLineNumber(), getMessage());
-    }
-
-    public String getTag() {
-        try {
-            return sTagFilter.match(mSte.getClassName());
-        } catch (NullPointerException e) {
-            return Logger.Anchor.unknown;
+    private void onWorkflow(String wf, boolean inout) {
+        if (null == sWorkflow.get()) {
+            sWorkflow.set(new Stack<String>());
+        }
+        final int pos = sWorkflow.get().indexOf(wf);
+        for (int i = 0; i <= pos; i++) sWorkflow.get().pop();
+        if (null != wf && inout) {
+            sWorkflow.get().push(wf);
+        } else if (null == wf && !inout) {
+            sWorkflow.get().clear();
         }
     }
 
+    public StackTraceAnchor toggle(String workflow) {
+        onWorkflow(workflow, true);
+        return this;
+    }
+
+    public StackTraceAnchor reset(String workflow) {
+        onWorkflow(workflow, false);
+        return this;
+    }
+
+    public StackTraceAnchor withLabel(String label) {
+        if (null != label) mLabel = label;
+        return this;
+    }
+
+    public StackTraceAnchor setLevel(Level level) {
+        mLevel = level;
+        return this;
+    }
+
+    public String getValue() {
+        StringBuilder builder = new StringBuilder(getMessage());
+        if (null != sWorkflow.get() && !sWorkflow.get().isEmpty())
+            builder.append(String.format(" <-((%s:%s ", sWorkflow.get().lastElement(), sWorkflow.get().firstElement()));
+        return builder.toString();
+    }
+
+    public String getLabel() {
+        try {
+            mLabel = (unknown.equals(mLabel))
+                    ? sLabelFilter.match(getStackTrace()[0].getClassName()) : mLabel;
+        } catch (Exception e) {}
+        return mLabel;
+    }
 
     /**
      * @author steven

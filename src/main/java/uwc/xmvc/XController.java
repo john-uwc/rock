@@ -1,7 +1,7 @@
 package uwc.xmvc;
 
-import uwc.util.trace.StackTraceAnchor;
-import uwc.util.Logger;
+import uwc.util.funnel.AnchorFunnel;
+import uwc.util.funnel.StackTraceAnchor;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -89,9 +89,10 @@ public final class XController {
         if (null == model) {
             try{
                 sModelPool.put(unit, model = smartType(unit).newInstance());
-                new StackTraceAnchor("xmodel:%s/unit:%s", model, unit).stick(Logger.local(), Logger.Level.info);
             } catch (Exception e){
-                new StackTraceAnchor("xmodel for " + unit + " fail: " + e.getMessage()).stick(Logger.local(), Logger.Level.error);
+                new StackTraceAnchor("xmodel for " + unit + " fail: " + e.getMessage())
+                        .setLevel(StackTraceAnchor.Level.error)
+                        .stick();
             }
         }
         return model;
