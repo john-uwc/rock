@@ -1,4 +1,4 @@
-package uwc.util.funnel;
+package uwc.funnel;
 
 import java.util.concurrent.PriorityBlockingQueue;
 

@@ -1,4 +1,4 @@
-package uwc.util.funnel;
+package uwc.funnel;
 
 /**
  * Created by steven on 15/02/2017.

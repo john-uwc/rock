@@ -4,9 +4,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import uwc.util.funnel.AnchorFunnel;
 import uwc.util.Taskpool;
-import uwc.util.funnel.StackTraceAnchor;
+import uwc.funnel.StackTraceAnchor;
 
 /**
  * Created by steven on 2/5/16.

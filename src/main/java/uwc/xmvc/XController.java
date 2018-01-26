@@ -1,7 +1,6 @@
 package uwc.xmvc;
 
-import uwc.util.funnel.AnchorFunnel;
-import uwc.util.funnel.StackTraceAnchor;
+import uwc.funnel.StackTraceAnchor;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
