@@ -9,40 +9,34 @@ import java.util.Map;
  * Created by steven on 18/01/2018.
  */
 
-public class Ring<T> {
+public final class Ring<T> {
 
-    protected static abstract class Slot<T> {
-        protected long mTs = System.currentTimeMillis();
-
-        protected <z extends Slot<T>> z duplicate(z slot) {
-            if (null != slot) mTs = slot.mTs;
-            return (z) this;
-        }
-    }
-
-    public static class Reader<T> extends Slot<T> {
+    public final static class Reader<T> extends Slot<T> {
         private final static LinkedList<WeakReference<Reader>> sReaders = new LinkedList<>();
         protected Ring<T> mHooked = null;
 
         public T next() throws InterruptedException {
             T element = null;
             while (null != mHooked) {
-                Map.Entry<T, Long> elem = mHooked.travel(mTs);
-                if (null != elem) {element = elem.getKey();mTs = elem.getValue();break;}
-                synchronized (Reader.class) {
-                    Reader.class.wait();
+                Map.Entry<T, Long> entry = mHooked.travel(mTs);
+                if (null != entry) {
+                    mTs = entry.getValue();element = entry.getKey();break;
+                }
+                synchronized (mHooked) {
+                    mHooked.wait();
                 }
             }
             return element;
         }
 
-        public final void attach(Ring<T> ring) {
+        public void attach(Ring<T> ring) {
             synchronized (sReaders) {
-                mHooked = ring;
                 if (sReaders.contains(new WeakReference<Reader>(this)))
                     return;
                 sReaders.addLast(new WeakReference<Reader>(
-                        this.duplicate(!sReaders.isEmpty() ? sReaders.getLast().get() : null)));
+                        this.duplicate(
+                                !sReaders.isEmpty() ? sReaders.getLast().get() : null)));
+                mHooked = ring;
             }
         }
     }
@@ -60,6 +54,7 @@ public class Ring<T> {
     }
 
     private final static short sCapacity = 200;
+
     private LinkedList<Element<T>> mElements = new LinkedList<>();
 
     public synchronized Map.Entry<T, Long> travel(long ts) {
@@ -79,6 +74,6 @@ public class Ring<T> {
             mElements.removeFirst();
         } while (false);
 
-        synchronized (Reader.class) {Reader.class.notifyAll();}
+        notifyAll();
     }
 }
