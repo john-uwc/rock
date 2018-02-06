@@ -1,9 +1,11 @@
 package uwc.util;
 
+
 import java.lang.ref.WeakReference;
 import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.Map;
+
 
 /**
  * Created by steven on 18/01/2018.
@@ -20,7 +22,9 @@ public final class Ring<T> {
             while (null != mHooked) {
                 Map.Entry<T, Long> entry = mHooked.travel(mTs);
                 if (null != entry) {
-                    mTs = entry.getValue();element = entry.getKey();break;
+                    mTs = entry.getValue();
+                    element = entry.getKey();
+                    break;
                 }
                 synchronized (mHooked) {
                     mHooked.wait();
@@ -53,9 +57,14 @@ public final class Ring<T> {
         }
     }
 
-    private final static short sCapacity = 200;
-
+    private short mCapacity = 260;
     private LinkedList<Element<T>> mElements = new LinkedList<>();
+
+    public Ring(short capacity) {
+        if (0 >= capacity)
+            return;
+        mCapacity = capacity;
+    }
 
     public synchronized Map.Entry<T, Long> travel(long ts) {
         for (Element<T> elem : mElements) {
@@ -66,14 +75,15 @@ public final class Ring<T> {
         return null;
     }
 
-    public synchronized void hang(T element) {
-        mElements.addLast(new Element<T>(element));
-        do {
-            if (sCapacity >= mElements.size())
-                break;
-            mElements.removeFirst();
-        } while (false);
+    public synchronized void hang(T... elements) {
+        if (null == elements)
+            return;
 
+        for (T element : elements) {
+            mElements.addLast(new Element<T>(element));
+            if (mCapacity < mElements.size())
+                mElements.removeFirst();
+        }
         notifyAll();
     }
 }

@@ -13,8 +13,8 @@ import java.util.concurrent.TimeUnit;
  * 
  */
 
-public class Taskpool {
-	private static Taskpool instance = new Taskpool();
+public class TaskPool {
+	private static TaskPool instance = new TaskPool();
 	private static final int corePoolSize = 6;
 	private static final int maximumPoolSize = 20;
 	private static final int keepAliveTime = 30;
@@ -31,10 +31,10 @@ public class Taskpool {
 	private static ThreadPoolExecutor executor = new ThreadPoolExecutor(
 			corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, workQueue, factory);
 
-	public static synchronized Taskpool sharedInstance() {
-		synchronized (Taskpool.class) {
+	public static synchronized TaskPool sharedInstance() {
+		synchronized (TaskPool.class) {
 			if (instance == null) {
-				instance = new Taskpool();
+				instance = new TaskPool();
 			}
 			return instance;
 		}

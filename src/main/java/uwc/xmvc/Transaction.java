@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import uwc.util.Taskpool;
+import uwc.util.TaskPool;
 import uwc.funnel.StackTraceAnchor;
 
 /**
@@ -13,7 +13,7 @@ import uwc.funnel.StackTraceAnchor;
 final class Transaction {
 
     static {
-        Taskpool.sharedInstance().doTask(new Dispatcher());
+        TaskPool.sharedInstance().doTask(new Dispatcher());
     }
 
     /**
@@ -41,7 +41,7 @@ final class Transaction {
                                 sMaySleep = (sMaySleep && (SvcTask.Status.died == tsk.status()));
 
                                 if (SvcTask.Status.died == tsk.status()) {
-                                    Taskpool.sharedInstance().cancelTask(tsk);
+                                    TaskPool.sharedInstance().cancelTask(tsk);
                                     tskIterator.remove();
                                     if (mSvcTasks.get(model).isEmpty()) {
                                         mdlIterator.remove();
@@ -49,7 +49,8 @@ final class Transaction {
                                     continue;
                                 }
                                 if (SvcTask.Status.unknown == tsk.status()) {
-                                    tsk.toStatusIfNeeded(SvcTask.Status.ready, true);Taskpool.sharedInstance().doTask(tsk);continue;
+                                    tsk.toStatusIfNeeded(SvcTask.Status.ready, true);
+                                    TaskPool.sharedInstance().doTask(tsk);continue;
                                 }
                                 if (SvcTask.Status.cancel == tsk.status()) {
                                     tsk.toStatusIfNeeded(SvcTask.Status.died, true);
