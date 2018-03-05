@@ -10,20 +10,18 @@ import java.util.Map;
 /**
  * Created by steven on 18/01/2018.
  */
+public final class Ring<E> {
 
-public final class Ring<T> {
-
-    public final static class Reader<T> extends Slot<T> {
+    public static class Reader<E> extends Slot<E> {
         private final static LinkedList<WeakReference<Reader>> sReaders = new LinkedList<>();
-        protected Ring<T> mHooked = null;
+        protected Ring<E> mHooked = null;
 
-        public T next() throws InterruptedException {
-            T element = null;
+        public E next() throws InterruptedException {
+            E element = null;
             while (null != mHooked) {
-                Map.Entry<T, Long> entry = mHooked.travel(mTs);
+                Map.Entry<Long, E> entry = mHooked.travel(mTs);
                 if (null != entry) {
-                    mTs = entry.getValue();
-                    element = entry.getKey();
+                    element = entry.getValue(); mTs = entry.getKey();
                     break;
                 }
                 synchronized (mHooked) {
@@ -33,7 +31,7 @@ public final class Ring<T> {
             return element;
         }
 
-        public void attach(Ring<T> ring) {
+        public void attach(Ring<E> ring) {
             synchronized (sReaders) {
                 if (sReaders.contains(new WeakReference<Reader>(this)))
                     return;
@@ -45,42 +43,45 @@ public final class Ring<T> {
         }
     }
 
-    private class Element<T> extends Slot<T> {
-        private T mPass;
+    private class Element<E> extends Slot<E> {
+        private E mPass;
 
         boolean isObsolete(long ts) {
             return ts >= mTs;
         }
 
-        Element(T element) {
+        Element(E element) {
             mPass = element;
         }
     }
 
-    private short mCapacity = 260;
-    private LinkedList<Element<T>> mElements = new LinkedList<>();
 
-    public Ring(short capacity) {
-        if (0 >= capacity)
-            return;
+    private LinkedList<Element<E>> mElements;
+    private int mCapacity;
+
+    public Ring(int capacity) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("capacity <= 0");
+        }
         mCapacity = capacity;
+        mElements = new LinkedList<>();
     }
 
-    public synchronized Map.Entry<T, Long> travel(long ts) {
-        for (Element<T> elem : mElements) {
+    public synchronized Map.Entry<Long, E> travel(long ts) {
+        for (Element<E> elem : mElements) {
             if (elem.isObsolete(ts))
                 continue;
-            return new AbstractMap.SimpleEntry<T, Long>(elem.mPass, elem.mTs);
+            return new AbstractMap.SimpleEntry<Long, E>(elem.mTs, elem.mPass);
         }
         return null;
     }
 
-    public synchronized void hang(T... elements) {
+    public synchronized void hang(E... elements) {
         if (null == elements)
             return;
 
-        for (T element : elements) {
-            mElements.addLast(new Element<T>(element));
+        for (E element : elements) {
+            mElements.addLast(new Element<E>(element));
             if (mCapacity < mElements.size())
                 mElements.removeFirst();
         }
