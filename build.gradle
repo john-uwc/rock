@@ -10,6 +10,16 @@ repositories {
 
 apply plugin: 'java-library'
 
+dependencies {
+	// 第三方 Stream, 接口同java8引入的Stream. 用于处理 Collection 和 Map 的变换
+	compile "com.annimon:stream:1.1.7"
+
+	// 网络框架
+	compile "com.squareup.okhttp3:logging-interceptor:3.7.0"
+	compile "com.squareup.retrofit2:retrofit:2.2.0"
+	compile "com.squareup.retrofit2:converter-gson:2.2.0"
+}
+
 sourceCompatibility=JavaVersion.VERSION_1_8
 version='1.0'
 jar {
