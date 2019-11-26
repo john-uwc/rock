@@ -12,8 +12,13 @@ public interface Logger {
          */
         private static Logger sInstance = new Logger() {
             @Override
-            public void log(String tag, String message) {
-                System.out.print(tag + ":" + message);
+            public void v(String tag, String message) {
+                System.out.print(tag + ":->" + message);
+            }
+
+            @Override
+            public void e(String tag, String message) {
+                System.out.print(tag + ":|>" + message);
             }
         };
 
@@ -30,5 +35,7 @@ public interface Logger {
         }
     }
 
-    void log(String tag, String message);
+    void v(String tag, String message);
+
+    void e(String tag, String message);
 }

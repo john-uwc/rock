@@ -2,7 +2,7 @@ package uwc.api;
 
 
 import com.google.gson.GsonBuilder;
-import uwc.p.Redis;
+import uwc.rt.Respool;
 import uwc.api.trace.ApiTrack;
 import uwc.api.trace.Level;
 import uwc.util.Logger;
@@ -53,7 +53,7 @@ public class XApiManager<T> {
                     .addConverterFactory(convertFactory());
             mApi = builder.build().create(api);
         } catch (Exception e) {
-            Logger.Holder.obtain().log(TAG,""+e);
+            Logger.Holder.obtain().v(TAG,""+e);
         }
         return mApi;
     }
@@ -82,7 +82,7 @@ public class XApiManager<T> {
             }
         });
 
-        okBuilder.addInterceptor(new ApiTrack().setLevel(Redis.isEngMode() ? Level.BODY : Level.BASIC));
+        okBuilder.addInterceptor(new ApiTrack().setLevel(Respool.isEngMode() ? Level.BODY : Level.BASIC));
 
         return okBuilder.build();
     }

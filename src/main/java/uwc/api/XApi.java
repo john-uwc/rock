@@ -20,10 +20,6 @@ public @interface XApi {
 
     interface Declare {
 
-        interface Mock {
-            String pullMock(String iPath, String iMethod);
-        }
-
         String namespace();
 
         Map<String, String> computeStub();

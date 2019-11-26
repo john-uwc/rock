@@ -17,8 +17,8 @@ public interface Source {
             }
 
             @Override
-            public String getString(String key) {
-                return null;
+            public String getString(String key, String def) {
+                return def;
             }
 
             @Override
@@ -27,8 +27,8 @@ public interface Source {
             }
 
             @Override
-            public int getInt(String key) {
-                return 0;
+            public int getInt(String key, int def) {
+                return def;
             }
 
             @Override
@@ -38,7 +38,7 @@ public interface Source {
 
             @Override
             public long getLong(String key, long def) {
-                return 0;
+                return def;
             }
 
             @Override
@@ -48,7 +48,7 @@ public interface Source {
 
             @Override
             public boolean getBoolean(String key, boolean def) {
-                return false;
+                return def;
             }
         };
 
@@ -71,11 +71,11 @@ public interface Source {
 
     void putString(String key, String value);
 
-    String getString(String key);
+    String getString(String key, String def);
 
     void putInt(String key, int value);
 
-    int getInt(String key);
+    int getInt(String key, int def);
 
     void putLong(String key, long value);
 

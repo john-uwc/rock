@@ -107,17 +107,17 @@ public final class ApiTrack implements Interceptor {
         if (!logHeaders && hasRequestBody) {
             requestStartMessage += " (" + requestBody.contentLength() + "-byte body)";
         }
-        mLogger.log(toTag(chain), requestStartMessage);
+        mLogger.v(toTag(chain), requestStartMessage);
 
         if (logHeaders) {
             if (hasRequestBody) {
                 // Request body headers are only present when installed as a network interceptor. Force
                 // them to be included (when available) so there values are known.
                 if (requestBody.contentType() != null) {
-                    mLogger.log(toTag(chain), "Content-Type: " + requestBody.contentType());
+                    mLogger.v(toTag(chain), "Content-Type: " + requestBody.contentType());
                 }
                 if (requestBody.contentLength() != -1) {
-                    mLogger.log(toTag(chain), "Content-Length: " + requestBody.contentLength());
+                    mLogger.v(toTag(chain), "Content-Length: " + requestBody.contentLength());
                 }
             }
 
@@ -126,14 +126,14 @@ public final class ApiTrack implements Interceptor {
                 String name = headers.name(i);
                 // Skip headers from the request body as they are explicitly logged above.
                 if (!"Content-Type".equalsIgnoreCase(name) && !"Content-Length".equalsIgnoreCase(name)) {
-                    mLogger.log(toTag(chain), name + ": " + headers.value(i));
+                    mLogger.v(toTag(chain), name + ": " + headers.value(i));
                 }
             }
 
             if (!logBody || !hasRequestBody) {
-                mLogger.log(toTag(chain), "--> END " + request.method());
+                mLogger.v(toTag(chain), "--> END " + request.method());
             } else if (bodyEncoded(request.headers())) {
-                mLogger.log(toTag(chain), "--> END " + request.method() + " (encoded body omitted)");
+                mLogger.v(toTag(chain), "--> END " + request.method() + " (encoded body omitted)");
             } else {
                 Buffer buffer = new Buffer();
                 requestBody.writeTo(buffer);
@@ -144,13 +144,13 @@ public final class ApiTrack implements Interceptor {
                     charset = contentType.charset(UTF8);
                 }
 
-                mLogger.log(toTag(chain), "");
+                mLogger.v(toTag(chain), "");
                 if (isPlaintext(buffer)) {
-                    mLogger.log(toTag(chain), buffer.readString(charset));
-                    mLogger.log(toTag(chain), "--> END " + request.method()
+                    mLogger.v(toTag(chain), buffer.readString(charset));
+                    mLogger.v(toTag(chain), "--> END " + request.method()
                             + " (" + requestBody.contentLength() + "-byte body)");
                 } else {
-                    mLogger.log(toTag(chain), "--> END " + request.method() + " (binary "
+                    mLogger.v(toTag(chain), "--> END " + request.method() + " (binary "
                             + requestBody.contentLength() + "-byte body omitted)");
                 }
             }
@@ -161,7 +161,7 @@ public final class ApiTrack implements Interceptor {
         try {
             response = chain.proceed(request);
         } catch (Exception e) {
-            mLogger.log(toTag(chain), "<-- HTTP FAILED: " + e);
+            mLogger.v(toTag(chain), "<-- HTTP FAILED: " + e);
             throw e;
         }
         long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
@@ -169,20 +169,20 @@ public final class ApiTrack implements Interceptor {
         ResponseBody responseBody = response.body();
         long contentLength = responseBody.contentLength();
         String bodySize = contentLength != -1 ? contentLength + "-byte" : "unknown-length";
-        mLogger.log(toTag(chain), "<-- " + response.code() + ' ' + response.message() + ' '
+        mLogger.v(toTag(chain), "<-- " + response.code() + ' ' + response.message() + ' '
                 + response.request().url() + " (" + tookMs + "ms" + (!logHeaders ? ", "
                 + bodySize + " body" : "") + ')');
 
         if (logHeaders) {
             Headers headers = response.headers();
             for (int i = 0, count = headers.size(); i < count; i++) {
-                mLogger.log(toTag(chain), headers.name(i) + ": " + headers.value(i));
+                mLogger.v(toTag(chain), headers.name(i) + ": " + headers.value(i));
             }
 
             if (!logBody || !HttpHeaders.hasBody(response)) {
-                mLogger.log(toTag(chain), "<-- END HTTP");
+                mLogger.v(toTag(chain), "<-- END HTTP");
             } else if (bodyEncoded(response.headers())) {
-                mLogger.log(toTag(chain), "<-- END HTTP (encoded body omitted)");
+                mLogger.v(toTag(chain), "<-- END HTTP (encoded body omitted)");
             } else {
                 BufferedSource source = responseBody.source();
                 source.request(Long.MAX_VALUE); // Buffer the entire body.
@@ -195,17 +195,17 @@ public final class ApiTrack implements Interceptor {
                 }
 
                 if (!isPlaintext(buffer)) {
-                    mLogger.log(toTag(chain), "");
-                    mLogger.log(toTag(chain), "<-- END HTTP (binary " + buffer.size() + "-byte body omitted)");
+                    mLogger.v(toTag(chain), "");
+                    mLogger.v(toTag(chain), "<-- END HTTP (binary " + buffer.size() + "-byte body omitted)");
                     return response;
                 }
 
                 if (contentLength != 0) {
-                    mLogger.log(toTag(chain), "");
-                    mLogger.log(toTag(chain), buffer.clone().readString(charset));
+                    mLogger.v(toTag(chain), "");
+                    mLogger.v(toTag(chain), buffer.clone().readString(charset));
                 }
 
-                mLogger.log(toTag(chain), "<-- END HTTP (" + buffer.size() + "-byte body)");
+                mLogger.v(toTag(chain), "<-- END HTTP (" + buffer.size() + "-byte body)");
             }
         }
 
