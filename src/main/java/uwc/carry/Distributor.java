@@ -4,6 +4,7 @@ import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -13,8 +14,10 @@ class Distributor implements Tunnel.Coordinator {
 
     @Override
     public void refresh(Collection<SoftReference<Membrane>> membranes) {
-        for (SoftReference<Membrane> membrane : membranes)
-            if (null == membrane.get()) membranes.remove(membrane);
+        final Iterator<SoftReference<Membrane>> each = membranes.iterator();
+        while (each.hasNext())
+            if (null == each.next().get())
+                each.remove();
         Collections.sort((List<SoftReference<Membrane>>)membranes, new Comparator<SoftReference<Membrane>>() {
             @Override
             public int compare(SoftReference<Membrane> o1, SoftReference<Membrane> o2) {

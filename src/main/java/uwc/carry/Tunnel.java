@@ -63,7 +63,7 @@ public final class Tunnel extends Membrane implements Runnable {
     public void run() {
         do {
             try {
-                synchronized (this) { mCoordinator.schedule(mObjQueue.take(), mMembranes); }
+                Object obj = mObjQueue.take(); synchronized (this) { mCoordinator.schedule(obj, mMembranes); }
             } catch (InterruptedException e) {
             }
         } while (true);
